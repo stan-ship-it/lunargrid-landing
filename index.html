@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lunar Grid — Google Ads at Scale</title>
+  <meta name="description" content="Turn your location database into production-ready Google Ads CSV files. Smart templates, variant fallbacks, and bulk export for Google Ads Editor." />
+
+  <!-- Fonts: Space Mono (display), DM Sans (body), JetBrains Mono (code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Design Tokens ─────────────────────────────────────────────── */
+    :root {
+      --background:           #edf2f9;
+      --foreground:           #18213a;
+      --card:                 #ffffff;
+      --card-foreground:      #18213a;
+      --primary:              #3b6ef5;
+      --primary-rgb:          59, 110, 245;
+      --secondary:            #dce8f8;
+      --muted:                #dce8f8;
+      --muted-foreground:     #5a7398;
+      --accent:               #e4ecf8;
+      --border:               #ccd8ed;
+      --grid-color:           rgba(59, 110, 245, 0.09);
+      --grid-size:            48px;
+      --shadow-sm:            0 1px 3px rgba(0,0,30,.06), 0 2px 10px rgba(0,0,30,.04);
+      --shadow-md:            0 4px 20px rgba(0,0,30,.10), 0 1px 4px rgba(0,0,30,.05);
+      --shadow-glow:          0 0 0 1px rgba(var(--primary-rgb),.25), 0 4px 24px rgba(var(--primary-rgb),.18);
+      --font-sans:            'DM Sans', system-ui, sans-serif;
+      --font-display:         'Space Mono', 'JetBrains Mono', monospace;
+      --font-mono:            'JetBrains Mono', monospace;
+      --radius:               0.5rem;
+      --nav-h:                64px;
+    }
+
+    [data-theme="dark"] {
+      --background:           #0C0F1A;
+      --foreground:           #E4EEFF;
+      --card:                 #111827;
+      --card-foreground:      #E4EEFF;
+      --secondary:            #1A2540;
+      --muted:                #1A2540;
+      --muted-foreground:     #6278A0;
+      --accent:               #1E2B45;
+      --border:               #1E2B45;
+      --grid-color:           rgba(59, 110, 245, 0.07);
+      --shadow-sm:            0 1px 3px rgba(0,0,0,.25), 0 2px 10px rgba(0,0,0,.18);
+      --shadow-md:            0 4px 20px rgba(0,0,0,.45), 0 1px 4px rgba(0,0,0,.2);
+      --shadow-glow:          0 0 0 1px rgba(var(--primary-rgb),.35), 0 4px 24px rgba(var(--primary-rgb),.25);
+    }
+
+    /* ── Reset ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 20px; }
+
+    body {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--foreground);
+      background-color: var(--background);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* ── Grid Background ───────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: var(--grid-size) var(--grid-size);
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59, 110, 245, 0.045) 0%, transparent 70%);
+    }
+
+    [data-theme="dark"] body::after { display: none; }
+
+    /* ── Keyframes ─────────────────────────────────────────────────── */
+    @keyframes glow-pulse {
+      0%, 100% { text-shadow: 0 0 18px rgba(var(--primary-rgb), 0.30), 0 0 40px rgba(var(--primary-rgb), 0.12); }
+      50%       { text-shadow: 0 0 28px rgba(var(--primary-rgb), 0.65), 0 0 60px rgba(var(--primary-rgb), 0.30); }
+    }
+
+    @keyframes border-glow-pulse {
+      0%, 100% { box-shadow: var(--shadow-sm), 0 0 0 1px rgba(var(--primary-rgb), 0.15), 0 2px 16px rgba(var(--primary-rgb), 0.08); }
+      50%       { box-shadow: var(--shadow-md), 0 0 0 1px rgba(var(--primary-rgb), 0.40), 0 6px 32px rgba(var(--primary-rgb), 0.22); }
+    }
+
+    @keyframes dot-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.35); }
+      50%       { box-shadow: 0 0 0 6px rgba(var(--primary-rgb), 0.00); }
+    }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes scan-line {
+      0%   { transform: translateY(-100%); opacity: 0.6; }
+      50%  { opacity: 0.3; }
+      100% { transform: translateY(120%); opacity: 0; }
+    }
+
+    @keyframes slide-in-right {
+      from { opacity: 0; transform: translateX(32px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes counter-up {
+      from { opacity: 0; transform: translateY(12px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0; }
+    }
+
+    @keyframes type-in {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+
+    @keyframes stream-row {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shimmer-move {
+      from { background-position: -200% 0; }
+      to   { background-position: 200% 0; }
+    }
+
+    @keyframes float-y {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    /* ── Typography ────────────────────────────────────────────────── */
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; }
+    h2 { font-size: clamp(1.3rem, 2.5vw, 1.9rem); font-weight: 700; }
+    h3 { font-size: clamp(0.95rem, 1.5vw, 1.1rem); font-weight: 700; }
+    h4 { font-size: 0.9rem; font-weight: 700; }
+
+    p { color: var(--muted-foreground); line-height: 1.75; }
+    a { color: inherit; text-decoration: none; }
+    code { font-family: var(--font-mono); }
+
+    /* ── Layout Helpers ────────────────────────────────────────────── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section { padding: 96px 0; }
+    .section-sm { padding: 64px 0; }
+
+    /* ── Brand Glow ────────────────────────────────────────────────── */
+    .brand-glow {
+      color: var(--primary);
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    .brand-glow:hover { animation-play-state: paused; }
+
+    /* ── Scroll Reveal ─────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.07s; }
+    .reveal-delay-2 { transition-delay: 0.14s; }
+    .reveal-delay-3 { transition-delay: 0.21s; }
+    .reveal-delay-4 { transition-delay: 0.28s; }
+
+    /* ── NAV ───────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--nav-h);
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(var(--background-nav, 237, 242, 249), 0.75);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    [data-theme="dark"] nav {
+      background: rgba(12, 15, 26, 0.82);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 0.36em;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      letter-spacing: 0.30em;
+      text-transform: uppercase;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .logo-lunar { color: var(--foreground); }
+    .logo-grid  { color: var(--primary); animation: glow-pulse 3s ease-in-out infinite; }
+
+    /* Separator line under logo */
+    .logo::after {
+      display: none;
+    }
+
+    /* Nav links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      transition: color 0.2s ease;
+    }
+    .nav-links a:hover { color: var(--foreground); }
+
+    /* Nav right */
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: none;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted-foreground);
+      transition: color 0.2s, border-color 0.2s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+    }
+    .theme-toggle:hover {
+      color: var(--foreground);
+      border-color: var(--primary);
+      transform: scale(1.08);
+    }
+    .theme-toggle svg { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .theme-toggle:hover svg { transform: rotate(20deg) scale(1.15); }
+
+    /* ── Buttons ───────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 12px rgba(var(--primary-rgb), 0.30);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 1px rgba(var(--primary-rgb), 0.5), 0 6px 24px rgba(var(--primary-rgb), 0.40);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted-foreground);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      color: var(--foreground);
+      border-color: rgba(var(--primary-rgb), 0.4);
+      background: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .btn-lg {
+      padding: 14px 32px;
+      font-size: 1rem;
+    }
+
+    .btn-sm {
+      padding: 7px 16px;
+      font-size: 0.8rem;
+    }
+
+    /* ── Hero ──────────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: calc(var(--nav-h) + 48px) 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background: rgba(var(--primary-rgb), 0.10);
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: dot-pulse 2.5s ease-in-out infinite;
+    }
+
+    .hero-title {
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+    }
+
+    .hero-sub {
+      font-size: 0.93rem;
+      max-width: 480px;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+    }
+
+    .hero-note {
+      margin-top: 16px;
+      font-size: 0.78rem;
+      color: var(--muted-foreground);
+      opacity: 0;
+      animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+    }
+    .hero-note span {
+      color: var(--primary);
+    }
+
+    /* ── Terminal Mockup ───────────────────────────────────────────── */
+    .hero-visual {
+      opacity: 0;
+      animation: slide-in-right 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+    }
+
+    .terminal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow-md), 0 0 0 1px rgba(var(--primary-rgb), 0.12), 0 0 80px rgba(var(--primary-rgb), 0.06);
+      overflow: hidden;
+      position: relative;
+      animation: float-y 6s ease-in-out infinite;
+    }
+
+    .terminal::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.8), transparent);
+      animation: scan-line 6s linear infinite;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted-foreground);
+      margin-left: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    .terminal-body {
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.8;
+    }
+
+    .t-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+      margin-bottom: 8px;
+    }
+
+    .t-template {
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    .t-ph { color: var(--primary); font-weight: 700; }
+
+    .t-arrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
+      margin: 12px 0;
+    }
+
+    .t-arrow-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--primary), transparent);
+      opacity: 0.4;
+    }
+
+    .t-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .t-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      background: rgba(var(--primary-rgb), 0.04);
+      border: 1px solid transparent;
+      opacity: 0;
+      animation: stream-row 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .t-row:nth-child(1) { animation-delay: 1.0s; }
+    .t-row:nth-child(2) { animation-delay: 1.4s; }
+    .t-row:nth-child(3) { animation-delay: 1.8s; }
+    .t-row:nth-child(4) { animation-delay: 2.2s; }
+
+    .t-row-ok {
+      font-size: 0.7rem;
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .t-more {
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
+      padding: 8px 10px;
+      opacity: 0;
+      animation: fade-in 0.4s ease 2.6s both;
+    }
+
+    .t-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--accent);
+    }
+
+    .t-stat {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
+    }
+
+    .t-stat strong {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* ── Logo Bar ──────────────────────────────────────────────────── */
+    .logo-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-bar-inner {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .logo-bar-label {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+      white-space: nowrap;
+    }
+
+    .logo-bar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+    }
+
+    .logo-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo-slot svg { opacity: 0.5; }
+
+    /* ── Section Header ────────────────────────────────────────────── */
+    .section-header {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 64px;
+    }
+
+    .section-eyebrow {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 { margin-bottom: 16px; }
+    .section-header p { font-size: 0.9rem; }
+
+    /* ── Features Grid ─────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.6), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .feat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow);
+    }
+    .feat-card:hover::before { opacity: 1; }
+
+    .feat-card.card-accent {
+      border-color: rgba(var(--primary-rgb), 0.35);
+      animation: border-glow-pulse 3s ease-in-out infinite;
+    }
+
+    .feat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(var(--primary-rgb), 0.12);
+      border: 1px solid rgba(var(--primary-rgb), 0.20);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 18px;
+    }
+
+    .feat-card h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: var(--card-foreground);
+    }
+
+    .feat-card p {
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    /* ── How It Works ──────────────────────────────────────────────── */
+    .how-bg {
+      background: var(--secondary);
+      position: relative;
+    }
+
+    [data-theme="dark"] .how-bg {
+      background: var(--muted);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.66% + 16px);
+      right: calc(16.66% + 16px);
+      height: 1px;
+      background: linear-gradient(90deg, var(--primary), rgba(var(--primary-rgb), 0.3), var(--primary));
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    .step {
+      text-align: center;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid rgba(var(--primary-rgb), 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .step h3 {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+
+    .step p { font-size: 0.82rem; }
+
+    /* ── Metrics ───────────────────────────────────────────────────── */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+
+    .metric-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 36px 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-value {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      color: var(--primary);
+      display: block;
+      animation: glow-pulse 3s ease-in-out infinite;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--muted-foreground);
+      font-weight: 500;
+    }
+
+    /* ── Testimonials ──────────────────────────────────────────────── */
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .testi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+    }
+
+    .testi-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .testi-stars {
+      display: flex;
+      gap: 4px;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+
+    .testi-quote {
+      font-size: 0.85rem;
+      line-height: 1.75;
+      color: var(--card-foreground);
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .testi-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .testi-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(var(--primary-rgb), 0.15);
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .testi-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--card-foreground);
+    }
+
+    .testi-role {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+    }
+
+    /* ── CTA Section ───────────────────────────────────────────────── */
+    .cta-section {
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-card {
+      background: var(--card);
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      border-radius: 20px;
+      padding: 72px 48px;
+      max-width: 640px;
+      margin: 0 auto;
+      box-shadow: var(--shadow-md), 0 0 0 1px rgba(var(--primary-rgb), 0.12), 0 0 80px rgba(var(--primary-rgb), 0.08);
+      position: relative;
+      z-index: 1;
+      animation: border-glow-pulse 3s ease-in-out infinite;
+    }
+
+    .cta-card h2 { margin-bottom: 16px; }
+    .cta-card p { margin-bottom: 32px; font-size: 0.9rem; }
+
+    .cta-form {
+      display: flex;
+      gap: 12px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .cta-input {
+      flex: 1;
+      height: 46px;
+      padding: 0 16px;
+      background: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: var(--foreground);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .cta-input::placeholder { color: var(--muted-foreground); }
+    .cta-input:focus {
+      border-color: rgba(var(--primary-rgb), 0.5);
+      box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.15);
+    }
+
+    .cta-disclaimer {
+      margin-top: 14px;
+      font-size: 0.74rem;
+      color: var(--muted-foreground);
+    }
+
+    /* ── Footer ────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-copy {
+      font-size: 0.78rem;
+      color: var(--muted-foreground);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 0.78rem;
+      color: var(--muted-foreground);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--foreground); }
+
+    /* ── Shimmer Badge ─────────────────────────────────────────────── */
+    .shimmer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.06em;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      background: linear-gradient(
+        90deg,
+        rgba(var(--primary-rgb), 0.06) 0%,
+        rgba(var(--primary-rgb), 0.16) 40%,
+        rgba(var(--primary-rgb), 0.06) 80%
+      );
+      background-size: 200% 100%;
+      animation: shimmer-move 2.5s ease-in-out infinite;
+      color: var(--primary);
+    }
+
+    /* ── Inline code snippet ───────────────────────────────────────── */
+    .code-tag {
+      display: inline-block;
+      background: rgba(var(--primary-rgb), 0.10);
+      border: 1px solid rgba(var(--primary-rgb), 0.20);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      color: var(--primary);
+    }
+
+    /* ── Feature detail rows ───────────────────────────────────────── */
+    .feature-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .feature-detail.flip { direction: rtl; }
+    .feature-detail.flip > * { direction: ltr; }
+
+    .feature-detail-text h3 {
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      margin-bottom: 14px;
+    }
+
+    .feature-detail-text p {
+      font-size: 0.88rem;
+      margin-bottom: 20px;
+    }
+
+    .feature-bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.88rem;
+      color: var(--muted-foreground);
+    }
+
+    .feature-bullets li::before {
+      content: '—';
+      color: var(--primary);
+      font-family: var(--font-mono);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .feature-visual {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── Divider ───────────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Mobile ────────────────────────────────────────────────────── */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--foreground);
+      padding: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .hero-visual { order: -1; }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .steps {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .steps::before { display: none; }
+
+      .metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-detail {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .feature-detail.flip { direction: ltr; }
+
+      .cta-form {
+        flex-direction: column;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .hero { padding-top: calc(var(--nav-h) + 32px); }
+      .section { padding: 64px 0; }
+      .metrics-grid { grid-template-columns: 1fr; }
+      .cta-card { padding: 48px 24px; }
+      .logo-bar-inner { gap: 16px; }
+    }
+
+    /* ── Variant chart in feature visual ──────────────────────────── */
+    .variant-rows {
+      padding: 20px;
+    }
+
+    .v-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      background: var(--accent);
+    }
+
+    .v-row.active {
+      border-color: rgba(var(--primary-rgb), 0.4);
+      background: rgba(var(--primary-rgb), 0.06);
+    }
+
+    .v-bar-wrap {
+      width: 90px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .v-bar {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--primary);
+      transition: width 0.8s ease;
+    }
+
+    .v-tag {
+      font-size: 0.62rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+    }
+
+    .v-tag.ok  { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .v-tag.ov  { background: rgba(239, 68, 68, 0.15);  color: #ef4444; }
+    .v-tag.use { background: rgba(var(--primary-rgb), 0.15); color: var(--primary); }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ── NAV ──────────────────────────────────────────────────────── -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo" aria-label="Lunar Grid">
+        <span class="logo-lunar">LUNAR</span>
+        <span class="logo-grid">GRID</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#testimonials">Customers</a></li>
+      </ul>
+
+      <div class="nav-right">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <!-- Sun (light mode) / Moon (dark mode) -->
+          <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <a href="#register" class="btn btn-primary btn-sm">Register Now</a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ── HERO ─────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-inner">
+
+        <!-- Copy -->
+        <div class="hero-copy">
+          <div class="hero-badge">Google Ads Automation</div>
+
+          <h1 class="hero-title">
+            Ad Campaigns<br>
+            at <span class="brand-glow">Scale.</span>
+          </h1>
+
+          <p class="hero-sub">
+            Turn your location database into production-ready Google Ads CSV files.
+            Smart templates, automatic variant fallbacks, and bulk export —
+            ready for Google Ads Editor in seconds.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#register" class="btn btn-primary btn-lg">
+              Register Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="#features" class="btn btn-ghost btn-lg">See how it works</a>
+          </div>
+
+          <p class="hero-note">
+            No credit card required &nbsp;·&nbsp; <span>Free during beta</span>
+          </p>
+        </div>
+
+        <!-- Terminal Mockup -->
+        <div class="hero-visual">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="terminal-title">lunar-grid — generate.tsx</span>
+            </div>
+            <div class="terminal-body">
+              <div class="t-label">Template</div>
+              <div class="t-template">
+                <span class="t-ph">{{city}}</span> Plumbers — Free Quote<br>
+                <span style="color:var(--muted-foreground);font-size:0.72rem;">Call Now · Licensed &amp; Insured · Same Day</span>
+              </div>
+
+              <div class="t-arrow">
+                <span>Generating</span>
+                <span class="t-arrow-line"></span>
+                <span><span class="shimmer-badge">848 rows</span></span>
+              </div>
+
+              <div class="t-rows">
+                <div class="t-row">
+                  <span>Paris Plumbers — Free Quote</span>
+                  <span class="t-row-ok">✓ 28 ch</span>
+                </div>
+                <div class="t-row">
+                  <span>Lyon Plumbers — Free Quote</span>
+                  <span class="t-row-ok">✓ 27 ch</span>
+                </div>
+                <div class="t-row">
+                  <span>Marseille Plumbers — Free Quote</span>
+                  <span class="t-row-ok">✓ 30 ch</span>
+                </div>
+                <div class="t-row">
+                  <span>Bordeaux Plumbers — Free Quote</span>
+                  <span class="t-row-ok">✓ 30 ch</span>
+                </div>
+              </div>
+
+              <div class="t-more">+ 844 more ad groups ...</div>
+            </div>
+            <div class="t-footer">
+              <span class="t-stat"><strong>848</strong> ad groups · <strong>0</strong> errors</span>
+              <a href="#register" class="btn btn-primary btn-sm">Export CSV</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── LOGO BAR ──────────────────────────────────────────────────── -->
+  <div class="divider"></div>
+  <section class="logo-bar">
+    <div class="container">
+      <div class="logo-bar-inner">
+        <span class="logo-bar-label">Trusted by agencies managing</span>
+        <div class="logo-bar-divider"></div>
+
+        <div class="logo-slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+          E-commerce
+        </div>
+        <div class="logo-slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Real Estate
+        </div>
+        <div class="logo-slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 19H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 5H10V3.5C10 2.67 9.33 2 8.5 2S7 2.67 7 3.5 7.67 5 8.5 5z"/></svg>
+          Franchises
+        </div>
+        <div class="logo-slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Local Services
+        </div>
+        <div class="logo-slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          SaaS &amp; Tech
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="divider"></div>
+
+
+  <!-- ── FEATURES ─────────────────────────────────────────────────── -->
+  <section class="section" id="features">
+    <div class="container">
+
+      <div class="section-header reveal">
+        <span class="section-eyebrow">// core capabilities</span>
+        <h2>Everything you need to<br>launch at scale</h2>
+        <p>Lunar Grid is built for teams that manage location-based campaigns — where manual copy-paste just doesn't cut it anymore.</p>
+      </div>
+
+      <div class="features-grid">
+
+        <div class="feat-card card-accent reveal">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h3>Template-Driven Ad Copy</h3>
+          <p>Define once, deploy everywhere. Write headlines, descriptions, and keyword templates with dynamic placeholders like <span class="code-tag">{{city}}</span> or <span class="code-tag">{{service}}</span> — Lunar Grid replaces them across your entire dataset.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-1">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Smart Variant Fallbacks</h3>
+          <p>When a headline hits Google's 30-character limit, Lunar Grid automatically falls back to your shorter variant. No truncated ads. No manual QA. Ship campaigns knowing every line is valid.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-2">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <h3>Bulk CSV Export</h3>
+          <p>One-click export generates CSV files formatted perfectly for Google Ads Editor. Import hundreds of campaigns in minutes — not days. Complete with keywords, sitelinks, callouts, and URLs.</p>
+        </div>
+
+        <div class="feat-card reveal">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <h3>Connect Any Data Source</h3>
+          <p>Link any PostgreSQL table — French communes, US cities, product catalogs, franchise locations. Lunar Grid adapts to your data structure via configurable placeholder mappings.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-1">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Custom Groups</h3>
+          <p>Hand-pick rows into named groups for special campaigns — flagship cities, seasonal markets, VIP zones. Custom groups get their own campaign name and are excluded from bulk generation.</p>
+        </div>
+
+        <div class="feat-card reveal reveal-delay-2">
+          <div class="feat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          </div>
+          <h3>Error Panel &amp; Live Preview</h3>
+          <p>Before you export, Lunar Grid surfaces every truncation warning, missing placeholder, and empty slot. Fix or skip individual rows inline — then export with confidence.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── HOW IT WORKS ──────────────────────────────────────────────── -->
+  <section class="section how-bg" id="how-it-works">
+    <div class="container">
+
+      <div class="section-header reveal">
+        <span class="section-eyebrow">// workflow</span>
+        <h2>From database to<br>live campaign in three steps</h2>
+        <p>Lunar Grid fits into your existing workflow without a learning curve. Connect, build, export.</p>
+      </div>
+
+      <div class="steps">
+
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <h3>Connect your data</h3>
+          <p>Link a Supabase table containing your location data — cities, addresses, stores, or any structured dataset. Custom fields are mapped as dynamic placeholders.</p>
+        </div>
+
+        <div class="step reveal reveal-delay-1">
+          <div class="step-num">02</div>
+          <h3>Build your templates</h3>
+          <p>Use the template editor to write ad copy with <span class="code-tag">{{placeholders}}</span>. Define headline variants, keyword match types, sitelinks, and callouts — all in one place.</p>
+        </div>
+
+        <div class="step reveal reveal-delay-2">
+          <div class="step-num">03</div>
+          <h3>Preview &amp; export</h3>
+          <p>Review generated ad groups in real time. The error panel catches issues before export. When everything looks right, click Export CSV — it's ready for Google Ads Editor.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── FEATURE DETAIL 1: Variant Fallbacks ───────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <div class="feature-detail reveal">
+
+        <div class="feature-detail-text">
+          <span class="section-eyebrow">// variant system</span>
+          <h3>Character limits enforced<br>automatically</h3>
+          <p>Google Ads is strict about character counts. Lunar Grid validates every field against the spec — 30 chars for headlines, 90 for descriptions — and falls back to your ordered variants when the primary is too long.</p>
+          <ul class="feature-bullets">
+            <li>Up to 15 headline slots, each with variant fallbacks</li>
+            <li>Up to 4 description slots with independent variants</li>
+            <li>Keyword, callout, and sitelink validation included</li>
+            <li>Issues tab shows exactly which rows and fields need attention</li>
+          </ul>
+        </div>
+
+        <div class="feature-visual">
+          <div class="terminal-bar">
+            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
+            <span class="terminal-title">Headline Slot 1 — Variants</span>
+          </div>
+          <div class="variant-rows">
+            <div class="v-row">
+              <span style="font-size:0.7rem;color:var(--muted-foreground)">Primary</span>
+              <span>{{city}} Emergency Plumbers</span>
+              <div class="v-bar-wrap"><div class="v-bar" style="width:80%"></div></div>
+              <span class="v-tag ok">✓ OK</span>
+            </div>
+            <div class="v-row active">
+              <span style="font-size:0.7rem;color:var(--primary)">Fallback 1</span>
+              <span>{{city}} Plumbers 24/7</span>
+              <div class="v-bar-wrap"><div class="v-bar" style="width:65%"></div></div>
+              <span class="v-tag use">↑ Used</span>
+            </div>
+            <div class="v-row">
+              <span style="font-size:0.7rem;color:var(--muted-foreground)">Fallback 2</span>
+              <span>Local Plumbers Near You</span>
+              <div class="v-bar-wrap"><div class="v-bar" style="width:55%"></div></div>
+              <span class="v-tag ok">✓ OK</span>
+            </div>
+            <div style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem;color:var(--muted-foreground);border-top:1px solid var(--border);margin-top:8px;">
+              Saint-Germain-en-Laye: primary → fallback 1 (33 ch → 24 ch)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── METRICS ───────────────────────────────────────────────────── -->
+  <section class="section-sm how-bg">
+    <div class="container">
+
+      <div class="metrics-grid">
+        <div class="metric-card reveal">
+          <span class="metric-value" data-count="10000" data-suffix="+">10,000+</span>
+          <span class="metric-label">Ad groups generated</span>
+        </div>
+        <div class="metric-card reveal reveal-delay-1">
+          <span class="metric-value" data-count="500" data-suffix="+">500+</span>
+          <span class="metric-label">Template sets created</span>
+        </div>
+        <div class="metric-card reveal reveal-delay-2">
+          <span class="metric-value">&lt; 30s</span>
+          <span class="metric-label">Average export time</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── TESTIMONIALS ──────────────────────────────────────────────── -->
+  <section class="section" id="testimonials">
+    <div class="container">
+
+      <div class="section-header reveal">
+        <span class="section-eyebrow">// from the field</span>
+        <h2>What PPC teams are saying</h2>
+      </div>
+
+      <div class="testimonials-grid">
+
+        <div class="testi-card reveal">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"We went from spending three days on campaign setup to under twenty minutes. Lunar Grid is non-negotiable for any agency running location-based campaigns."</p>
+          <div class="testi-meta">
+            <div class="testi-avatar">SK</div>
+            <div>
+              <div class="testi-name">Sarah K.</div>
+              <div class="testi-role">Head of Paid Search, Digital Agency</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal reveal-delay-1">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"The variant fallback system alone saved us hours of manual QA. Finally a tool that understands how Google Ads actually works — not just how marketers wish it worked."</p>
+          <div class="testi-meta">
+            <div class="testi-avatar">JR</div>
+            <div>
+              <div class="testi-name">James R.</div>
+              <div class="testi-role">Senior PPC Strategist, E-commerce Brand</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"Managing 12 franchise locations used to mean 12 separate spreadsheets. With Lunar Grid, it's one template set and a single export. Absolute game changer."</p>
+          <div class="testi-meta">
+            <div class="testi-avatar">ML</div>
+            <div>
+              <div class="testi-name">Marie L.</div>
+              <div class="testi-role">Marketing Director, Franchise Group</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal reveal-delay-1">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"I connected our CRM data in 10 minutes and generated 400+ tailored ad groups before lunch. The live preview mode is exceptional — you see exactly what Google Ads will see."</p>
+          <div class="testi-meta">
+            <div class="testi-avatar">TC</div>
+            <div>
+              <div class="testi-name">Thomas C.</div>
+              <div class="testi-role">Freelance Google Ads Specialist</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── CTA SECTION ───────────────────────────────────────────────── -->
+  <section class="section cta-section" id="register">
+    <div class="cta-glow"></div>
+    <div class="container">
+      <div class="cta-card reveal">
+        <span class="section-eyebrow">// early access</span>
+        <h2>Launch faster.<br>Scale further.</h2>
+        <p>Lunar Grid is in beta. Register now for early access and be first to launch campaigns at scale.</p>
+
+        <form class="cta-form" onsubmit="handleRegister(event)">
+          <input
+            type="email"
+            class="cta-input"
+            placeholder="your@email.com"
+            required
+            autocomplete="email"
+          />
+          <button type="submit" class="btn btn-primary">
+            Register Now
+          </button>
+        </form>
+
+        <p class="cta-disclaimer">No spam. No credit card. Unsubscribe anytime.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── FOOTER ────────────────────────────────────────────────────── -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <a href="#" class="logo" style="font-size:0.82rem">
+          <span class="logo-lunar">LUNAR</span>
+          <span class="logo-grid">GRID</span>
+        </a>
+
+        <p class="footer-copy">© 2026 Lunar Grid · Built for scale</p>
+
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#register">Register</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ── JS ──────────────────────────────────────────────────────── -->
+  <script>
+    // ── Theme Toggle ──────────────────────────────────────────────
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const iconSun = document.getElementById('iconSun');
+    const iconMoon = document.getElementById('iconMoon');
+
+    function getTheme() {
+      return localStorage.getItem('lunar-grid-theme') || 'dark';
+    }
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      if (theme === 'dark') {
+        iconSun.style.display = 'block';
+        iconMoon.style.display = 'none';
+      } else {
+        iconSun.style.display = 'none';
+        iconMoon.style.display = 'block';
+      }
+      localStorage.setItem('lunar-grid-theme', theme);
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    });
+
+    applyTheme(getTheme());
+
+
+    // ── Scroll Reveal ─────────────────────────────────────────────
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    reveals.forEach(el => observer.observe(el));
+
+
+    // ── Register Form ──────────────────────────────────────────────
+    function handleRegister(e) {
+      e.preventDefault();
+      const form = e.target;
+      const email = form.querySelector('input[type="email"]').value;
+      const btn = form.querySelector('button');
+
+      btn.textContent = '✓ You\'re on the list!';
+      btn.style.background = '#10b981';
+      btn.style.boxShadow = '0 2px 12px rgba(16, 185, 129, 0.30)';
+      btn.disabled = true;
+      form.querySelector('input').disabled = true;
+    }
+
+
+    // ── Nav scroll effect ─────────────────────────────────────────
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        nav.style.borderBottomColor = 'var(--border)';
+      } else {
+        nav.style.borderBottomColor = 'transparent';
+      }
+    }, { passive: true });
+  </script>
+
+</body>
+</html>
