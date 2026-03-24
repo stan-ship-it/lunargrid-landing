@@ -1021,8 +1021,7 @@
       align-items: center;
     }
 
-    .feature-detail.flip { direction: rtl; }
-    .feature-detail.flip > * { direction: ltr; }
+    .feature-detail.flip .feature-visual { order: -1; }
 
     .feature-detail-text h3 {
       font-size: clamp(1.05rem, 1.8vw, 1.3rem);
@@ -1117,7 +1116,7 @@
         gap: 40px;
       }
 
-      .feature-detail.flip { direction: ltr; }
+
 
       .cta-form {
         flex-direction: column;
