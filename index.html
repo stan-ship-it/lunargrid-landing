@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lunar Grid — Google Ads at Scale</title>
+  <title>Lunar Grid: Google Ads at Scale</title>
   <meta name="description" content="Turn your location database into production-ready Google Ads CSV files. Smart templates, variant fallbacks, and bulk export for Google Ads Editor." />
 
   <!-- Fonts: Space Mono (display), DM Sans (body), JetBrains Mono (code) -->
@@ -1050,7 +1050,7 @@
     }
 
     .feature-bullets li::before {
-      content: '—';
+      content: '→';
       color: var(--primary);
       font-family: var(--font-mono);
       flex-shrink: 0;
@@ -1091,7 +1091,7 @@
         gap: 48px;
       }
 
-      .hero-visual { order: -1; }
+      .hero-visual { order: 1; }
 
       .features-grid {
         grid-template-columns: 1fr;
@@ -1187,6 +1187,87 @@
     .v-tag.ov  { background: rgba(239, 68, 68, 0.15);  color: #ef4444; }
     .v-tag.use { background: rgba(var(--primary-rgb), 0.15); color: var(--primary); }
 
+    /* ── Google Ad Preview ─────────────────────────────────────────── */
+    .ad-preview-wrap {
+      background: #fff;
+      border-radius: 0 0 12px 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    [data-theme="dark"] .ad-preview-wrap {
+      background: #1c1c2e;
+    }
+
+    .google-ad {
+      padding: 12px 0;
+      border-bottom: 1px solid #e8eaed;
+    }
+
+    [data-theme="dark"] .google-ad {
+      border-color: rgba(255,255,255,0.07);
+    }
+
+    .google-ad:last-child { border-bottom: none; padding-bottom: 4px; }
+    .google-ad:first-child { padding-top: 4px; }
+
+    .ad-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .ad-badge {
+      font-size: 10px;
+      border: 1px solid #006621;
+      color: #006621;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-weight: 500;
+      line-height: 1.4;
+      font-family: Arial, sans-serif;
+      flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .ad-badge {
+      border-color: #4caf50;
+      color: #4caf50;
+    }
+
+    .ad-url {
+      font-size: 11px;
+      color: #4d5156;
+      font-family: Arial, sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    [data-theme="dark"] .ad-url { color: #9aa0a6; }
+
+    .ad-title {
+      font-size: 15px;
+      color: #1a0dab;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      font-family: Arial, sans-serif;
+      font-weight: 400;
+    }
+
+    [data-theme="dark"] .ad-title { color: #8ab4f8; }
+
+    .ad-desc {
+      font-size: 12px;
+      color: #4d5156;
+      line-height: 1.5;
+      font-family: Arial, sans-serif;
+    }
+
+    [data-theme="dark"] .ad-desc { color: #bdc1c6; }
+
   </style>
 </head>
 
@@ -1241,8 +1322,7 @@
 
           <p class="hero-sub">
             Turn your location database into production-ready Google Ads CSV files.
-            Smart templates, automatic variant fallbacks, and bulk export —
-            ready for Google Ads Editor in seconds.
+            Smart templates, automatic variant fallbacks, and bulk export ready for Google Ads Editor in seconds.
           </p>
 
           <div class="hero-actions">
@@ -1265,12 +1345,12 @@
               <span class="dot dot-red"></span>
               <span class="dot dot-yellow"></span>
               <span class="dot dot-green"></span>
-              <span class="terminal-title">lunar-grid — generate.tsx</span>
+              <span class="terminal-title">lunar-grid › generate.tsx</span>
             </div>
             <div class="terminal-body">
               <div class="t-label">Template</div>
               <div class="t-template">
-                <span class="t-ph">{{city}}</span> Plumbers — Free Quote<br>
+                <span class="t-ph">{{city}}</span> Plumbers | Free Quote<br>
                 <span style="color:var(--muted-foreground);font-size:0.72rem;">Call Now · Licensed &amp; Insured · Same Day</span>
               </div>
 
@@ -1282,19 +1362,19 @@
 
               <div class="t-rows">
                 <div class="t-row">
-                  <span>Paris Plumbers — Free Quote</span>
+                  <span>Paris Plumbers | Free Quote</span>
                   <span class="t-row-ok">✓ 28 ch</span>
                 </div>
                 <div class="t-row">
-                  <span>Lyon Plumbers — Free Quote</span>
+                  <span>Lyon Plumbers | Free Quote</span>
                   <span class="t-row-ok">✓ 27 ch</span>
                 </div>
                 <div class="t-row">
-                  <span>Marseille Plumbers — Free Quote</span>
+                  <span>Marseille Plumbers | Free Quote</span>
                   <span class="t-row-ok">✓ 30 ch</span>
                 </div>
                 <div class="t-row">
-                  <span>Bordeaux Plumbers — Free Quote</span>
+                  <span>Bordeaux Plumbers | Free Quote</span>
                   <span class="t-row-ok">✓ 30 ch</span>
                 </div>
               </div>
@@ -1354,7 +1434,7 @@
       <div class="section-header reveal">
         <span class="section-eyebrow">// core capabilities</span>
         <h2>Everything you need to<br>launch at scale</h2>
-        <p>Lunar Grid is built for teams that manage location-based campaigns — where manual copy-paste just doesn't cut it anymore.</p>
+        <p>Lunar Grid is built for teams that manage location-based campaigns at scale, where manual copy-paste just doesn't cut it.</p>
       </div>
 
       <div class="features-grid">
@@ -1364,7 +1444,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
           </div>
           <h3>Template-Driven Ad Copy</h3>
-          <p>Define once, deploy everywhere. Write headlines, descriptions, and keyword templates with dynamic placeholders like <span class="code-tag">{{city}}</span> or <span class="code-tag">{{service}}</span> — Lunar Grid replaces them across your entire dataset.</p>
+          <p>Define once, deploy everywhere. Write headlines, descriptions, and keywords with dynamic placeholders like <span class="code-tag">{{city}}</span> or <span class="code-tag">{{service}}</span>. Lunar Grid resolves them across your entire dataset automatically.</p>
         </div>
 
         <div class="feat-card reveal reveal-delay-1">
@@ -1380,7 +1460,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </div>
           <h3>Bulk CSV Export</h3>
-          <p>One-click export generates CSV files formatted perfectly for Google Ads Editor. Import hundreds of campaigns in minutes — not days. Complete with keywords, sitelinks, callouts, and URLs.</p>
+          <p>One-click export generates CSV files formatted perfectly for Google Ads Editor. Import hundreds of campaigns in minutes, not days. Complete with keywords, sitelinks, callouts, and URLs.</p>
         </div>
 
         <div class="feat-card reveal">
@@ -1388,7 +1468,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
           </div>
           <h3>Connect Any Data Source</h3>
-          <p>Link any PostgreSQL table — French communes, US cities, product catalogs, franchise locations. Lunar Grid adapts to your data structure via configurable placeholder mappings.</p>
+          <p>Link any PostgreSQL table: French communes, US cities, product catalogs, franchise locations. Lunar Grid adapts to your data structure via configurable placeholder mappings.</p>
         </div>
 
         <div class="feat-card reveal reveal-delay-1">
@@ -1396,7 +1476,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           </div>
           <h3>Custom Groups</h3>
-          <p>Hand-pick rows into named groups for special campaigns — flagship cities, seasonal markets, VIP zones. Custom groups get their own campaign name and are excluded from bulk generation.</p>
+          <p>Hand-pick rows into named groups for special campaigns: flagship cities, seasonal markets, VIP zones. Custom groups get their own campaign name and are excluded from bulk generation.</p>
         </div>
 
         <div class="feat-card reveal reveal-delay-2">
@@ -1404,7 +1484,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
           </div>
           <h3>Error Panel &amp; Live Preview</h3>
-          <p>Before you export, Lunar Grid surfaces every truncation warning, missing placeholder, and empty slot. Fix or skip individual rows inline — then export with confidence.</p>
+          <p>Before you export, Lunar Grid surfaces every truncation warning, missing placeholder, and empty slot. Fix or skip individual rows inline, then export with confidence.</p>
         </div>
 
       </div>
@@ -1427,19 +1507,19 @@
         <div class="step reveal">
           <div class="step-num">01</div>
           <h3>Connect your data</h3>
-          <p>Link a Supabase table containing your location data — cities, addresses, stores, or any structured dataset. Custom fields are mapped as dynamic placeholders.</p>
+          <p>Link a Supabase table containing your location data: cities, addresses, stores, or any structured dataset. Custom fields are mapped as dynamic placeholders.</p>
         </div>
 
         <div class="step reveal reveal-delay-1">
           <div class="step-num">02</div>
           <h3>Build your templates</h3>
-          <p>Use the template editor to write ad copy with <span class="code-tag">{{placeholders}}</span>. Define headline variants, keyword match types, sitelinks, and callouts — all in one place.</p>
+          <p>Use the template editor to write ad copy with <span class="code-tag">{{placeholders}}</span>. Define headline variants, keyword match types, sitelinks, and callouts, all in one place.</p>
         </div>
 
         <div class="step reveal reveal-delay-2">
           <div class="step-num">03</div>
           <h3>Preview &amp; export</h3>
-          <p>Review generated ad groups in real time. The error panel catches issues before export. When everything looks right, click Export CSV — it's ready for Google Ads Editor.</p>
+          <p>Review generated ad groups in real time. The error panel catches issues before export. When everything looks right, click Export CSV and import directly into Google Ads Editor.</p>
         </div>
 
       </div>
@@ -1456,7 +1536,7 @@
         <div class="feature-detail-text">
           <span class="section-eyebrow">// variant system</span>
           <h3>Character limits enforced<br>automatically</h3>
-          <p>Google Ads is strict about character counts. Lunar Grid validates every field against the spec — 30 chars for headlines, 90 for descriptions — and falls back to your ordered variants when the primary is too long.</p>
+          <p>Google Ads is strict about character counts. Lunar Grid validates every field against the spec (30 chars for headlines, 90 for descriptions) and falls back to your ordered variants when the primary is too long.</p>
           <ul class="feature-bullets">
             <li>Up to 15 headline slots, each with variant fallbacks</li>
             <li>Up to 4 description slots with independent variants</li>
@@ -1468,7 +1548,7 @@
         <div class="feature-visual">
           <div class="terminal-bar">
             <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
-            <span class="terminal-title">Headline Slot 1 — Variants</span>
+            <span class="terminal-title">Headline Slot 1 › Variants</span>
           </div>
           <div class="variant-rows">
             <div class="v-row">
@@ -1491,6 +1571,61 @@
             </div>
             <div style="padding:8px 12px;font-family:var(--font-mono);font-size:0.7rem;color:var(--muted-foreground);border-top:1px solid var(--border);margin-top:8px;">
               Saint-Germain-en-Laye: primary → fallback 1 (33 ch → 24 ch)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── FEATURE DETAIL 2: Ad Preview ─────────────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <div class="feature-detail flip reveal">
+
+        <div class="feature-detail-text">
+          <span class="section-eyebrow">// ad preview</span>
+          <h3>See exactly what<br>searchers will see</h3>
+          <p>Before you export, Lunar Grid renders each ad group as a live Google Ads mockup. Headlines, descriptions, and URL paths are resolved from your data so you know exactly what goes live.</p>
+          <ul class="feature-bullets">
+            <li>Live preview updates as you edit templates</li>
+            <li>Cycle through rows to verify every city or location</li>
+            <li>URL paths resolved per row from your data</li>
+            <li>Spot rendering issues before they reach your account</li>
+          </ul>
+        </div>
+
+        <div class="feature-visual">
+          <div class="terminal-bar">
+            <span class="dot dot-red"></span><span class="dot dot-yellow"></span><span class="dot dot-green"></span>
+            <span class="terminal-title">Ad Preview &nbsp;·&nbsp; Paris, row #1</span>
+          </div>
+          <div class="ad-preview-wrap">
+            <div class="google-ad">
+              <div class="ad-header">
+                <span class="ad-badge">Ad</span>
+                <span class="ad-url">example.com › plumbers › paris</span>
+              </div>
+              <div class="ad-title">Paris Plumbers | Free Quote | Same Day</div>
+              <div class="ad-desc">Licensed and insured plumbers in Paris. Available 24/7 for emergency repairs. Get your free quote today.</div>
+            </div>
+            <div class="google-ad">
+              <div class="ad-header">
+                <span class="ad-badge">Ad</span>
+                <span class="ad-url">example.com › plumbers › lyon</span>
+              </div>
+              <div class="ad-title">Lyon Plumbers | Free Quote | Same Day</div>
+              <div class="ad-desc">Expert plumbers in Lyon serving residential and commercial clients. Fast response, fair pricing, guaranteed work.</div>
+            </div>
+            <div class="google-ad">
+              <div class="ad-header">
+                <span class="ad-badge">Ad</span>
+                <span class="ad-url">example.com › plumbers › marseille</span>
+              </div>
+              <div class="ad-title">Marseille Plumbers | Free Quote | Same Day</div>
+              <div class="ad-desc">Top-rated plumbers in Marseille. Emergency and scheduled service available. Call now for a free estimate.</div>
             </div>
           </div>
         </div>
@@ -1548,7 +1683,7 @@
 
         <div class="testi-card reveal reveal-delay-1">
           <div class="testi-stars">★★★★★</div>
-          <p class="testi-quote">"The variant fallback system alone saved us hours of manual QA. Finally a tool that understands how Google Ads actually works — not just how marketers wish it worked."</p>
+          <p class="testi-quote">"The variant fallback system alone saved us hours of manual QA. Finally a tool that understands how Google Ads actually works, not just how marketers wish it worked."</p>
           <div class="testi-meta">
             <div class="testi-avatar">JR</div>
             <div>
@@ -1572,7 +1707,7 @@
 
         <div class="testi-card reveal reveal-delay-1">
           <div class="testi-stars">★★★★★</div>
-          <p class="testi-quote">"I connected our CRM data in 10 minutes and generated 400+ tailored ad groups before lunch. The live preview mode is exceptional — you see exactly what Google Ads will see."</p>
+          <p class="testi-quote">"I connected our CRM data in 10 minutes and generated 400+ tailored ad groups before lunch. The live preview mode is exceptional. You see exactly what Google Ads will show."</p>
           <div class="testi-meta">
             <div class="testi-avatar">TC</div>
             <div>
