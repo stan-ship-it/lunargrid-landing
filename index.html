@@ -1021,9 +1021,6 @@
       align-items: center;
     }
 
-    .feature-detail.flip .feature-detail-text { grid-column: 2; grid-row: 1; }
-    .feature-detail.flip .feature-visual       { grid-column: 1; grid-row: 1; }
-
     .feature-detail-text h3 {
       font-size: clamp(1.05rem, 1.8vw, 1.3rem);
       margin-bottom: 14px;
@@ -1123,8 +1120,7 @@
         grid-template-columns: 1fr;
         gap: 40px;
       }
-      .feature-detail.flip .feature-detail-text,
-      .feature-detail.flip .feature-visual { grid-column: auto; grid-row: auto; }
+
 
 
 
@@ -1592,19 +1588,7 @@
   <!-- ── FEATURE DETAIL 2: Ad Preview ─────────────────────────────── -->
   <section class="section">
     <div class="container">
-      <div class="feature-detail flip reveal">
-
-        <div class="feature-detail-text">
-          <span class="section-eyebrow">// ad preview</span>
-          <h3>See exactly what<br>searchers will see</h3>
-          <p>Before you export, Lunar Grid renders each ad group as a live Google Ads mockup. Headlines, descriptions, and URL paths are resolved from your data so you know exactly what goes live.</p>
-          <ul class="feature-bullets">
-            <li>Live preview updates as you edit templates</li>
-            <li>Cycle through rows to verify every city or location</li>
-            <li>URL paths resolved per row from your data</li>
-            <li>Spot rendering issues before they reach your account</li>
-          </ul>
-        </div>
+      <div class="feature-detail reveal">
 
         <div class="feature-visual">
           <div class="terminal-bar">
@@ -1637,6 +1621,18 @@
               <div class="ad-desc">Top-rated plumbers in Marseille. Emergency and scheduled service available. Call now for a free estimate.</div>
             </div>
           </div>
+        </div>
+
+        <div class="feature-detail-text">
+          <span class="section-eyebrow">// ad preview</span>
+          <h3>See exactly what<br>searchers will see</h3>
+          <p>Before you export, Lunar Grid renders each ad group as a live Google Ads mockup. Headlines, descriptions, and URL paths are resolved from your data so you know exactly what goes live.</p>
+          <ul class="feature-bullets">
+            <li>Live preview updates as you edit templates</li>
+            <li>Cycle through rows to verify every city or location</li>
+            <li>URL paths resolved per row from your data</li>
+            <li>Spot rendering issues before they reach your account</li>
+          </ul>
         </div>
 
       </div>
